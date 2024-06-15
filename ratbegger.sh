@@ -4,7 +4,7 @@ set -h -u -o 'pipefail'
 
 ## SCRIPT INFORMATION
 # ------------------------------------------------------------------------------
-# Name          : RatBagger-G502X
+# Name          : RatBegger-G502X
 # License       : Non-Profit Open Software License ("Non-Profit OSL") 3.0
 # Requirements  : GNU/Linux, Bash compatible shell
 # Dependencies  : libratbag, mapfile
@@ -23,8 +23,8 @@ set -h -u -o 'pipefail'
 # ------------------------------------------------------------------------------
 
 sScriptName='RatBagger-G502X'
-sScriptVersion='20240614'
-aMsg=()
+sScriptVersion='20240615'
+sRE_iRes='^resolution ([0-9])$'
 
 a=(
     ''
@@ -44,6 +44,7 @@ fi
 printf '%s\n' 'Found a Logitech G502 X'
 
 while true ; do
+    aMsg=()
     printf '\n'
     select sOp in 'Device Info' 'Load Profile' 'Set Active Profile' 'Help' 'Quit'
     do
@@ -51,7 +52,7 @@ while true ; do
             ('Device Info') ratbagctl 'Logitech G502 X' info ;;
             ('Load Profile')
                 printf '\n%s' 'Enter a profile number (0-4) to write to: '
-                read -rN1 i
+                read -rN1 iProfile
                 printf '\n\n%s\n\n' 'Select a configuration file to write...'
                 select sIniFile in 'profiles/'*
                 do
@@ -61,65 +62,56 @@ while true ; do
                 for s in "${a[@]}" ; do
                     s1="$(cut -d '=' -f 1 <<< "${s}")"
                     s2="$(cut -d '=' -f 2 <<< "${s}")"
-                    if [[ "${s1}" = 'profile name' ]] ; then # BUG https://github.com/libratbag/libratbag/issues/680
+                    if [[ "${s1}" = ';'* ]] ; then
+                        continue
+                    elif [[ "${s1}" = 'profile name' ]] ; then # BUG https://github.com/libratbag/libratbag/issues/680
                         printf '%s\n' 'Seting profile name...'
-                        ratbagctl 'Logitech G502 X' profile "${i}" name set "${s2}" || aMsg+=('Failed to set profile name.')
+                        ratbagctl 'Logitech G502 X' profile "${iProfile}" name set "${s2}" || aMsg+=('Failed to set profile name.')
                     elif [[ "${s1}" = 'profile enable' ]] ; then
-                        printf '%s\n' "Set profile ${s2} state..."
-                        ratbagctl 'Logitech G502 X' profile "${i}" "${s2}" || aMsg+=('Failed to enable/disable profile')
+                        printf '%s\n' "Set profile '${s2}' state..."
+                        ratbagctl 'Logitech G502 X' profile "${iProfile}" "${s2}" || aMsg+=('Failed to enable/disable profile')
                     elif [[ "${s1}" = 'usb report rate' ]] ; then
                         printf '%s\n' 'Setting USB report rate...'
-                        ratbagctl 'Logitech G502 X' profile "${i}" rate set "${s2}" || aMsg+=('Failed to set USB report rate.')
+                        ratbagctl 'Logitech G502 X' profile "${iProfile}" rate set "${s2}" || aMsg+=('Failed to set USB report rate.')
                     elif [[ "${s1}" = 'default resolution profile' ]] ; then
                         printf '%s\n' 'Setting default resolution profile...'
-                        ratbagctl 'Logitech G502 X' profile "${i}" resolution default set "${s2}" || aMsg+=('Failed to set default resolution profile.')
+                        ratbagctl 'Logitech G502 X' profile "${iProfile}" resolution default set "${s2}" || aMsg+=('Failed to set default resolution profile.')
                     elif [[ "${s1}" = 'active resolution profile' ]] ; then
                         printf '%s\n' 'Setting active resolution profile...'
-                        ratbagctl 'Logitech G502 X' profile "${i}" resolution active set "${s2}" || aMsg+=('Failed to set active resolution profile.')
-                    elif [[ "${s1}" = 'resolution 0' ]] ; then
-                        printf '%s\n' 'Setting resolution 0...'
-                        ratbagctl 'Logitech G502 X' profile "${i}" resolution 0 dpi set "${s2}" || aMsg+=('Failed to set resolution 0.')
-                    elif [[ "${s1}" = 'resolution 1' ]] ; then
-                        printf '%s\n' 'Setting resolution 1...'
-                        ratbagctl 'Logitech G502 X' profile "${i}" resolution 1 dpi set "${s2}" || aMsg+=('Failed to set resolution 1.')
-                    elif [[ "${s1}" = 'resolution 2' ]] ; then
-                        printf '%s\n' 'Setting resolution 2...'
-                        ratbagctl 'Logitech G502 X' profile "${i}" resolution 2 dpi set "${s2}" || aMsg+=('Failed to set resolution 2.')
-                    elif [[ "${s1}" = 'resolution 3' ]] ; then
-                        printf '%s\n' 'Setting resolution 3...'
-                        ratbagctl 'Logitech G502 X' profile "${i}" resolution 3 dpi set "${s2}" || aMsg+=('Failed to set resolution 3.')
-                    elif [[ "${s1}" = 'resolution 4' ]] ; then
-                        printf '%s\n' 'Setting resolution 4...'
-                        ratbagctl 'Logitech G502 X' profile "${i}" resolution 4 dpi set "${s2}" || aMsg+=('Failed to set resolution 4.')
+                        ratbagctl 'Logitech G502 X' profile "${iProfile}" resolution active set "${s2}" || aMsg+=('Failed to set active resolution profile.')
+                    elif [[ "${s1}" =~ ${sRE_iRes} ]] ; then
+                        printf '%s\n' "Setting resolution '${BASH_REMATCH[1]}'..."
+                        ratbagctl 'Logitech G502 X' profile "${iProfile}" resolution 0 dpi set "${BASH_REMATCH[1]}" || aMsg+=("Failed to set resolution ${BASH_REMATCH[1]}.")
                     elif [[ "${s2}" = 'button '* ]] ; then # NOTE don't quote ${s1} or ${s2}
-                        printf '%s\n' "Mapping button ${s1} to button ${s2}..."
-                        ratbagctl 'Logitech G502 X' profile "${i}" ${s1} action set ${s2} || aMsg+=("Failed to map button ${s1} to button ${s2}.")
-                    elif [[ "${s1}" = 'button '* ]] ; then # NOTE don't quote ${s1} or ${s2}
-                        printf '%s\n' "Mapping button ${s1} to key(s) ${s2}..."
-                        ratbagctl 'Logitech G502 X' profile "${i}" ${s1} action set macro ${s2} || aMsg+=("Failed to map button ${s1} to key ${s2}.")
-                    else # assume 'sepcial' action
-                        printf '%s\n' "Mapping button ${s1} to special action ${s2}..."
-                        ratbagctl 'Logitech G502 X' profile "${i}" ${s1} action set special ${s2} || aMsg+=("Failed to map button ${s1} to action ${s2}.")
+                        printf '%s\n' "Mapping button '${s1}' to button '${s2}'..."
+                        ratbagctl 'Logitech G502 X' profile "${iProfile}" ${s1} action set ${s2} || aMsg+=("Failed to map button '${s1}' to button '${s2}'.")
+                    elif [[ "${s2}" = *'KEY_'* ]] ; then # NOTE don't quote ${s1} or ${s2}
+                        printf '%s\n' "Mapping button '${s1}' to key(s) '${s2}'..."
+                        ratbagctl 'Logitech G502 X' profile "${iProfile}" ${s1} action set macro ${s2} || aMsg+=("Failed to map button '${s1}' to key '${s2}'.")
+                    elif [[ "${s2}" = *'-'* || "${s2}" = 'unknown' ]] ; then # assume 'sepcial' action
+                        # to list special actions, use ratbagctl with invalid action
+                        printf '%s\n' "Mapping button '${s1}' to special action '${s2}'..."
+                        ratbagctl 'Logitech G502 X' profile "${iProfile}" ${s1} action set special ${s2} || aMsg+=("Failed to map button '${s1}' to action '${s2}'.")
+                    else
+                        aMsg+=("Unknown configuration entry '${s}' in file '${sIniFile}'")
                     fi
                 done
+                if [[ -z "${aMsg[*]}" ]] ; then
+                    printf '\n%s\n' "Profile '${iProfile}' written successfully!"
+                else
+                    printf '\n%s\n%s\n%s\n' "Profile '${iProfile}' write completed with errors:" '' "${aMsg[@]}"
+                fi
             ;;
             ('Set Active Profile')
-                read -rN1 -p 'Enter a profile number (0-4) to activate: ' i
-                printf '%s\n' "Setting active profile to ${i}..."
-                ratbagctl 'Logitech G502 X' profile active set "${i}" || aMsg+=("ERROR: Failed to activate profile ${i}.")
+                read -rN1 -p 'Enter a profile number (0-4) to activate: ' iProfile
+                printf '\n%s\n' "Setting active profile to '${iProfile}'..."
+                ratbagctl 'Logitech G502 X' profile active set "${iProfile}" || printf '\n\n%s\n' "Failed to activate profile '${iProfile}'."
             ;;
-            ('Help') xdg-open 'README.md' &> '/dev/null' ;;
+            ('Help') xdg-open 'README.md' &> '/dev/null' && continue 2 ;;
             ('Quit') exit ;;
-            (*) printf '%s\n' 'ERROR: Invalid choice!'
+            (*) printf '%s\n' 'ERROR: Invalid choice!' && continue 2 ;;
         esac
-
-        if [[ -z "${aMsg[*]}" ]] ; then
-            aMsg=('' 'Operation complete!')
-        else
-            aMsg=('' 'Operation completed with errors:' '' "${aMsg[@]}")
-        fi
-        aMsg+=('' 'Press any key to continue.')
-        printf '%s\n' "${aMsg[@]}"
+        printf '\n%s\n' 'Press any key to continue.'
         read -rsN1
         continue 2
     done
