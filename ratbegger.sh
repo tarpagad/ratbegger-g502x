@@ -23,7 +23,7 @@ set -h -u -o 'pipefail'
 # license can be viewed on-line at: https://opensource.org/licenses/NPOSL-3.0
 # ------------------------------------------------------------------------------
 
-sScriptName='RatBagger-G502X'
+sScriptName='RatBegger-G502X'
 sScriptVersion='20240615-1'
 sRE_iRes='^resolution ([0-9])$'
 

@@ -4,7 +4,7 @@
 
 ## INTRO
 
-The intention of the ratbagger.sh script is to make it easier to load different profiles onto the mouse and set the active one. The script relies upon one or more profile configuration files which are stored in the 'profiles' directory. A couple of sample files are included.
+The intention of the ratbegger.sh script is to make it easier to load different profiles onto the mouse and set the active one. The script relies upon one or more profile configuration files which are stored in the 'profiles' directory. A couple of sample files are included.
 
 The script uses ratbagctl which is provided by libratbag, a required dependency. The script does not perform all of the functions available with ratbagctl.
 
@@ -16,7 +16,7 @@ When mapping mouse buttons to keyboard keys, a valid key name must be used, all 
 
 You can have as many configuration profiles as you want in the 'profiles' directory, but only 5 can be loaded on the mouse. The files must have a '.ini' extension. See the included sample configuration file for reference.
 
-To run the script, `cd` to the script directory and run `./ratbagger.sh`.
+To run the script, `cd` to the script directory and run `./ratbegger.sh`.
 
 ## HELPFUL HINTS
 
