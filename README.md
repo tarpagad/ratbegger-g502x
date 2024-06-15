@@ -1,14 +1,14 @@
-## LOGITECH G502 X
+# LOGITECH G502 X
 
 <img src="g502x.png" alt="Logitech G502 X">
 
-### INTRO
+## INTRO
 
 The intention of the ratbagger.sh script is to make it easier to load different profiles onto the mouse and set the active one. The script relies upon one or more profile configuration files which are stored in the 'profiles' directory. A couple of sample files are included.
 
 The script uses ratbagctl which is provided by libratbag, a required dependency. The script does not perform all of the functions available with ratbagctl.
 
-### BASIC SCRIPT USAGE
+## BASIC SCRIPT USAGE
 
 Mouse buttons typically start with the number 1, however libratbag starts with button 0 which is equivalent to mouse button 1, the left primary button. See the image above for reference when writing configuration files.
 
@@ -23,7 +23,7 @@ Following are some examples of specifying macros:
 
 To run the script, `cd` to the script directory and run `./ratbagger.sh`.
 
-### KNOWN ISSUES
+## KNOWN ISSUES
 
 * Although `profile name=Some Name` can be used in configuration files to assign a name to a profile, there's a bug in libratbag that prevents writing the profile name to the mouse, therefore these lines are commented out in the sample configuration files (see: https://github.com/libratbag/libratbag/issues/680).
 
@@ -31,15 +31,15 @@ To run the script, `cd` to the script directory and run `./ratbagger.sh`.
 
 * There are several other issues with libratbag and the G502 series of mice.
 
-### G502 X AVAILABLE RESOLUTION/DPI SETTINGS
+## G502 X AVAILABLE RESOLUTION/DPI SETTINGS
 
 100 to 1000 in increments of 50, 1000 to 2600 in increments of 100, 2600 to 5000 in increments of 200, 5000 to 25500 in increments of 500
 
-### G502 X AVAILABLE USB POLLING RATES (Hz)
+## G502 X AVAILABLE USB POLLING RATES (Hz)
 
 125 250 500 1000
 
-### G502 X SPECIAL ACTIONS
+## G502 X SPECIAL ACTIONS
 
 The following are special actions which can be mapped to mouse buttons. If you use any of the up/down actions in a configuration file, you may want to duplicate them in any other configuration files.
 
@@ -62,7 +62,7 @@ The following are special actions which can be mapped to mouse buttons. If you u
 | wheel up              | wheel-up              |
 | wheel down            | wheel-down            |
 
-### COMMON KEYBOARD KEYS
+## COMMON KEYBOARD KEYS
 
 |     DESCRIPTION      |    KEY NAME    |
 | -------------------- | -------------- |
@@ -108,7 +108,7 @@ The following are special actions which can be mapped to mouse buttons. If you u
 | Tab                  | KEY_TAB        |
 | Up                   | KEY_UP         |
 
-### KEYPAD KEYS
+## KEYPAD KEYS
 
 |   DESCRIPTION   |    KEY NAME    |
 | --------------- | -------------- |
@@ -122,7 +122,7 @@ The following are special actions which can be mapped to mouse buttons. If you u
 | Number Keys 0-9 | KEY_KP0-9      |
 | Plus            | KEY_KPPLUS     |
 
-### MEDIA KEYS
+## MEDIA KEYS
 
 | DESCRIPTION |     KEY NAME     |
 | ----------- | ---------------- |
@@ -136,7 +136,7 @@ The following are special actions which can be mapped to mouse buttons. If you u
 | Volume Down | KEY_VOLUMEDOWN   |
 | Volume Up   | KEY_VOLUMEUP     |
 
-### RATBAGCTL COMMAND EXAMPLES
+## RATBAGCTL COMMAND EXAMPLES
 
 Following are some examples of ratbagctl commands if you need to use it directly.
 
@@ -153,7 +153,7 @@ Following are some examples of ratbagctl commands if you need to use it directly
 * map mouse button to keyboard key: `ratbagctl 'Logitech G502 X' profile <0-4> button <0-10> action set macro <key name>`
 * map mouse button to a special action: `ratbagctl 'Logitech G502 X' profile <0-4> button <0-10> action set special <special action>`
 
-### RESOURCES
+## RESOURCES
 
 * RatBagger-G502X source code repository: https://codeberg.org/12bytes/ratbegger-g502x
 * libratbag source code repository: https://github.com/libratbag/libratbag
