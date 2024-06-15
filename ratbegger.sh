@@ -5,6 +5,7 @@ set -h -u -o 'pipefail'
 ## SCRIPT INFORMATION
 # ------------------------------------------------------------------------------
 # Name          : RatBegger-G502X
+# Description   : Load stored configuration files onto a Logitech G502 X mouse.
 # License       : Non-Profit Open Software License ("Non-Profit OSL") 3.0
 # Requirements  : GNU/Linux, Bash compatible shell
 # Dependencies  : libratbag, mapfile
@@ -23,7 +24,7 @@ set -h -u -o 'pipefail'
 # ------------------------------------------------------------------------------
 
 sScriptName='RatBagger-G502X'
-sScriptVersion='20240615'
+sScriptVersion='20240615-1'
 sRE_iRes='^resolution ([0-9])$'
 
 a=(
@@ -54,11 +55,11 @@ while true ; do
                 printf '\n%s' 'Enter a profile number (0-4) to write to: '
                 read -rN1 iProfile
                 printf '\n\n%s\n\n' 'Select a configuration file to write...'
-                select sIniFile in 'profiles/'*
+                select sFile in 'profiles/'*
                 do
                     break
                 done
-                mapfile -t a < "${sIniFile}"
+                mapfile -t a < "${sFile}"
                 for s in "${a[@]}" ; do
                     s1="$(cut -d '=' -f 1 <<< "${s}")"
                     s2="$(cut -d '=' -f 2 <<< "${s}")"
@@ -88,14 +89,15 @@ while true ; do
                     elif [[ "${s2}" = *'KEY_'* ]] ; then # NOTE don't quote ${s1} or ${s2}
                         printf '%s\n' "Mapping button '${s1}' to key(s) '${s2}'..."
                         ratbagctl 'Logitech G502 X' profile "${iProfile}" ${s1} action set macro ${s2} || aMsg+=("Failed to map button '${s1}' to key '${s2}'.")
-                    elif [[ "${s2}" = *'-'* || "${s2}" = 'unknown' ]] ; then # assume 'sepcial' action
+                    elif [[ "${s2}" = *'-'* || "${s2}" = 'unknown' ]] ; then # assume 'special' action
                         # to list special actions, use ratbagctl with invalid action
                         printf '%s\n' "Mapping button '${s1}' to special action '${s2}'..."
                         ratbagctl 'Logitech G502 X' profile "${iProfile}" ${s1} action set special ${s2} || aMsg+=("Failed to map button '${s1}' to action '${s2}'.")
                     else
-                        aMsg+=("Unknown configuration entry '${s}' in file '${sIniFile}'")
+                        aMsg+=("Unknown configuration entry '${s}' in '${sFile}'.")
                     fi
                 done
+
                 if [[ -z "${aMsg[*]}" ]] ; then
                     printf '\n%s\n' "Profile '${iProfile}' written successfully!"
                 else
