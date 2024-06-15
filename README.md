@@ -16,19 +16,43 @@ When mapping mouse buttons to keyboard keys, a valid key name must be used, all 
 
 You can have as many configuration profiles as you want in the 'profiles' directory, but only 5 can be loaded on the mouse. The files must have a '.ini' extension. See the included sample configuration file for reference.
 
-Following are some examples of specifying macros:
+To run the script, `cd` to the script directory and run `./ratbagger.sh`.
+
+## HELPFUL HINTS
+
+Following are some examples of how to write macros:
 
 * press and release '1', press 'Left Ctrl', press and release 'A', release 'Left Ctrl': `KEY_1 +KEY_LEFTCTRL KEY_A -KEY_LEFTCTRL`
 * press 'A', pause 1 second, release 'A': `+KEY_A t1000 -KEY_A`
 
-To run the script, `cd` to the script directory and run `./ratbagger.sh`.
+I'm not sure how changing the DPI for the 'sniper' button (typically button 4) is supposed to be programed. There's a special action named `resolution-alternate`, but i don't how to use it. One way to change the DPI only while the assigned button is pressed is to have 2 adjacent and identical profiles, the exception being the default DPI setting for the 'sniper' profile, then mapping the 'sniper' button to `profile-cycle-up` or `profile-cycle-down`. The following example assumes profile 0 is the default and profile 1 will be used to lower DPI while the 'sniper' button is pressed:
+
+Default (profile 0) resolution setting:
+
+```
+...
+default resolution profile=0
+active resolution profile=0
+resolution 0=1600
+...
+button 4=profile-cycle-up
+...
+```
+
+Sniper (profile 1) resolution setting:
+
+```
+...
+default resolution profile=0
+active resolution profile=0
+resolution 0=800
+...
+```
 
 ## KNOWN ISSUES
 
 * Although `profile name=Some Name` can be used in configuration files to assign a name to a profile, there's a bug in libratbag that prevents writing the profile name to the mouse, therefore these lines are commented out in the sample configuration files (see: https://github.com/libratbag/libratbag/issues/680).
-
 * Not all mouse buttons can be mapped to a macro. This seems to be either a libratbag or mouse firmware bug.
-
 * There are several other issues with libratbag and the G502 series of mice.
 
 ## G502 X AVAILABLE RESOLUTION/DPI SETTINGS
@@ -140,9 +164,9 @@ The following are special actions which can be mapped to mouse buttons. If you u
 
 Following are some examples of ratbagctl commands if you need to use it directly.
 
-* list devices: `ratbagctl list` (the remainder of the examples are specific to the Logitech G502 X)
+* list devices: `ratbagctl list`
 * get device info: `ratbagctl 'Logitech G502 X' info`
-* set USB polling rate: `ratbagctl 'Logitech G502 X' profile <0-4> rate set <see table above>`
+* set USB polling rate: `ratbagctl 'Logitech G502 X' profile <0-4> rate set <125|250|500|1000>`
 * enable a profile: `ratbagctl 'Logitech G502 X' profile <0-4> enable`
 * disable a profile: `ratbagctl 'Logitech G502 X' profile <0-4> disable`
 * set currently active profile: `ratbagctl 'Logitech G502 X' profile active set <0-4>`
@@ -150,10 +174,10 @@ Following are some examples of ratbagctl commands if you need to use it directly
 * set active resolution profile: `ratbagctl 'Logitech G502 X' profile <0-4> resolution active set <0-4>`
 * set DPI for given resolution profile: `ratbagctl 'Logitech G502 X' profile <0-4> resolution <0-4> dpi set <see table above>`
 * map one mouse button to another: `ratbagctl 'Logitech G502 X' profile <0-4> button <0-10> action set button <0-10>`
-* map mouse button to keyboard key: `ratbagctl 'Logitech G502 X' profile <0-4> button <0-10> action set macro <key name>`
-* map mouse button to a special action: `ratbagctl 'Logitech G502 X' profile <0-4> button <0-10> action set special <special action>`
+* map mouse button to keyboard key: `ratbagctl 'Logitech G502 X' profile <0-4> button <0-10> action set macro <see table above>`
+* map mouse button to a special action: `ratbagctl 'Logitech G502 X' profile <0-4> button <0-10> action set special <see table above>`
 
 ## RESOURCES
 
-* RatBagger-G502X source code repository: https://codeberg.org/12bytes/ratbegger-g502x
+* RatBegger-G502X source code repository: https://codeberg.org/12bytes/ratbegger-g502x
 * libratbag source code repository: https://github.com/libratbag/libratbag
