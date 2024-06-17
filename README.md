@@ -4,7 +4,7 @@
 
 ## INTRO
 
-The intention of the ratbegger.sh script is to make it easier to load different profiles onto the mouse and set the active one. The script relies upon one or more profile configuration files which are stored in the 'profiles' directory. A couple of sample files are included.
+The intention of the ratbegger.sh script is to make it easier to load different profiles onto the mouse and set the active one. The script relies upon one or more profile configuration files which are stored in the 'profiles' directory. A sample configuration file is included.
 
 The script uses ratbagctl which is provided by libratbag, a required dependency. The script does not perform all of the functions available with ratbagctl.
 
