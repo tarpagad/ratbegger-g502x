@@ -8,9 +8,11 @@ The intention of the ratbegger.sh script is to make it easier to load different 
 
 The script uses ratbagctl which is provided by libratbag, a required dependency. The script does not perform all of the functions available with ratbagctl.
 
-## BASIC SCRIPT USAGE
+## BASIC USAGE
 
 Mouse buttons typically start with the number 1, however libratbag starts with button 0 which is equivalent to mouse button 1, the left primary button. See the image above for reference when writing configuration files.
+
+Start by creating a configuration profile in the 'profiles' directory for the mouse. See the included example file for reference.
 
 When mapping mouse buttons to keyboard keys, a valid key name must be used, all of which start with "KEY_". See the tables below. If you want to map a button to a key which isn't included in the tables, you will need to locate your key code file in order to find the key name. You can try looking in `/usr/include/linux/input-event-codes.h`.
 
