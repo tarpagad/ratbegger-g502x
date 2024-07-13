@@ -4,66 +4,47 @@
 
 ## INTRO
 
-The intention of the ratbegger.sh script is to make it easier to load different profiles onto the mouse and set the active one. The script relies upon one or more profile configuration files which are stored in the 'profiles' directory. A sample configuration file is included.
+The primary purpose of the ratbegger.sh script is to make it easier to load configuration profiles onto the mouse and set the active one, verses using ratbagctl directly. The script relies upon one or more profile configuration files stored in the "configs" directory. A sample configuration file is included.
 
 The script uses ratbagctl which is provided by libratbag, a required dependency. The script does not perform all of the functions available with ratbagctl.
 
 ## BASIC USAGE
 
-Mouse buttons typically start with the number 1, however libratbag starts with button 0 which is equivalent to mouse button 1, the left primary button. See the image above for reference when writing configuration files.
+Mouse buttons typically start with the number 1, however, to libratbag, button 1 is button 0, the left primary button, while button 1, to libratbag, is button 2, the right secondary button. See the included image for reference when writing configuration files.
 
-Start by creating a configuration profile in the 'profiles' directory for the mouse. See the included example file for reference.
+Start by creating a configuration profile in the "configs" directory for the mouse. See the included example file for reference.
 
-When mapping mouse buttons to keyboard keys, a valid key name must be used, all of which start with "KEY_". See the tables below. If you want to map a button to a key which isn't included in the tables, you will need to locate your key code file in order to find the key name. You can try looking in `/usr/include/linux/input-event-codes.h`.
+When mapping mouse buttons to keyboard keys, a valid key name must be used, all of which start with "KEY_". See the tables below. If you want to map a button to a key which isn't included in the tables, you will need to locate your operating system's key code file in order to find the key name. You can try looking in `/usr/include/linux/input-event-codes.h`.
 
-You can have as many configuration profiles as you want in the 'profiles' directory, but only 5 can be loaded on the mouse. The files must have a '.ini' extension. See the included sample configuration file for reference.
+You can have as many configuration profiles as you want in the "configs" directory, but only 5 can be loaded on the mouse. The files must have a ".ini" extension.
 
 To run the script, `cd` to the script directory and run `./ratbegger.sh`.
 
 ## HELPFUL HINTS
 
+Any button bound to "resolution-alternate" will change the mouse resolution from its current value to the "resolution 0" value on the same profile.
+
 Following are some examples of how to write macros:
 
-* press and release '1', press 'Left Ctrl', press and release 'A', release 'Left Ctrl': `KEY_1 +KEY_LEFTCTRL KEY_A -KEY_LEFTCTRL`
-* press 'A', pause 1 second, release 'A': `+KEY_A t1000 -KEY_A`
-
-I'm not sure how changing the DPI for the 'sniper' button (typically button 4) is supposed to be programed. There's a special action named `resolution-alternate`, but i don't how to use it. One way to change the DPI only while the assigned button is pressed is to have 2 adjacent and identical profiles, the exception being the default DPI setting for the 'sniper' profile, then mapping the 'sniper' button to `profile-cycle-up` or `profile-cycle-down`. The following example assumes profile 0 is the default and profile 1 will be used to lower DPI while the 'sniper' button is pressed:
-
-Default (profile 0) resolution setting:
-
-```
-...
-default resolution profile=0
-active resolution profile=0
-resolution 0=1600
-...
-button 4=profile-cycle-up
-...
-```
-
-Sniper (profile 1) resolution setting:
-
-```
-...
-default resolution profile=0
-active resolution profile=0
-resolution 0=800
-...
-```
+* press and release "1", press "Left Ctrl", press and release "A", release "Left Ctrl": `KEY_1 +KEY_LEFTCTRL KEY_A -KEY_LEFTCTRL`
+* press "A", pause 1 second, release "A": `+KEY_A t1000 -KEY_A`
 
 ## KNOWN ISSUES
 
-* Although `profile name=Some Name` can be used in configuration files to assign a name to a profile, there's a bug in libratbag that prevents writing the profile name to the mouse, therefore these lines are commented out in the sample configuration files (see: https://github.com/libratbag/libratbag/issues/680).
-* Not all mouse buttons can be mapped to a macro. This seems to be either a libratbag or mouse firmware bug.
+* Although `profile name=Some Name` can be used in configuration files to assign a name to a profile, there's a bug in libratbag that prevents writing the profile name to the mouse, therefore these lines are commented out in the sample configuration file (see: https://github.com/libratbag/libratbag/issues/680).
+* Not all mouse buttons can be mapped to a macro. This seems to be either a libratbag or mouse firmware issue.
 * There are several other issues with libratbag and the G502 series of mice.
 
 ## G502 X AVAILABLE RESOLUTION/DPI SETTINGS
 
-100 to 1000 in increments of 50, 1000 to 2600 in increments of 100, 2600 to 5000 in increments of 200, 5000 to 25500 in increments of 500
+* 100 to 1000 DPI is set in increments of 50
+* 1000 to 2600 DPI is set in increments of 100
+* 2600 to 5000 DPI is set in increments of 200
+* 5000 to 25500 DPI is set in increments of 500
 
 ## G502 X AVAILABLE USB POLLING RATES (Hz)
 
-125 250 500 1000
+125, 250, 500, 1000
 
 ## G502 X SPECIAL ACTIONS
 
