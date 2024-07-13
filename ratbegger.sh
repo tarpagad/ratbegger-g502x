@@ -14,6 +14,8 @@ set -h -u -o 'pipefail'
 # Code          : https://codeberg.org/12bytes/ratbegger-g502x
 # Credit        : Thanks to 'mercster' for suggesting this script
 #                 (see https://github.com/libratbag/piper/issues/952).
+#                 Thanks to 'Chrozayis' for helping me to figure out the
+#                 'alternate-resolution' stuff.
 # Usage         : See the included README.md file.
 #
 ## LICENSE
@@ -24,7 +26,7 @@ set -h -u -o 'pipefail'
 # ------------------------------------------------------------------------------
 
 sScriptName='RatBegger-G502X'
-sScriptVersion='20240617'
+sScriptVersion='20240712'
 
 a=(
     ''
@@ -46,19 +48,20 @@ printf '%s\n' 'Found a Logitech G502 X'
 while true ; do
     aMsg=()
     printf '\n'
-    select sOp in 'Device Info' 'Load Profile' 'Enable Profile' 'Disable Profile' 'Set Active Profile' 'Help' 'Quit'
+    select sOp in 'Device Info' 'Load Config' 'Enable Profile' 'Disable Profile' 'Set Active Profile' 'Help' 'Quit'
     do
         case "${sOp}" in
             ('Device Info') ratbagctl 'Logitech G502 X' info ;;
-            ('Load Profile')
-                printf '\n%s' 'Enter a profile number (0-4) to write to: '
-                read -rN1 iProfile
-                printf '\n\n%s\n\n' 'Select a configuration file to write...'
-                select sFile in 'profiles/'*
+            ('Load Config')
+                printf '\n\n%s\n\n' 'Select a configuration file to load...'
+                select sFile in 'configs/'*
                 do
                     break
                 done
                 mapfile -t a < "${sFile}"
+                printf '\n%s' 'Select a profile number (0-4) to write the configuration to: '
+                read -rN1 iProfile
+                printf '\n\n'
                 for s in "${a[@]}" ; do
                     s1="$(cut -d '=' -f 1 <<< "${s}")"
                     s2="$(cut -d '=' -f 2 <<< "${s}")"
