@@ -53,13 +53,13 @@ while true ; do
         case "${sOp}" in
             ('Device Info') ratbagctl 'Logitech G502 X' info ;;
             ('Load Config')
-                printf '\n\n%s\n\n' 'Select a configuration file to load...'
+                printf '%s\n\n' 'Select a configuration file to load...'
                 select sFile in 'configs/'*
                 do
                     break
                 done
                 mapfile -t a < "${sFile}"
-                printf '\n%s' 'Select a profile number (0-4) to write the configuration to: '
+                printf '%s' 'Select a profile number (0-4) to write the configuration to: '
                 read -rN1 iProfile
                 printf '\n\n'
                 for s in "${a[@]}" ; do
@@ -104,12 +104,12 @@ while true ; do
                 fi
             ;;
             ('Enable Profile')
-                read -rN1 -p 'Enter a profile number (0-4) to enable ' i
+                read -rN1 -p 'Enter a profile number (0-4) to enable: ' i
                 printf '\n%s\n' "Enabling profile '${i}'..."
                 ratbagctl 'Logitech G502 X' profile "${i}" enable || printf '\n%s\n' "Failed to enable profile '${i}'."
             ;;
             ('Disable Profile')
-                read -rN1 -p 'Enter a profile number (0-4) to disable ' i
+                read -rN1 -p 'Enter a profile number (0-4) to disable: ' i
                 printf '\n%s\n' "Disabling profile '${i}'..."
                 ratbagctl 'Logitech G502 X' profile "${i}" disable || printf '\n%s\n' "Failed to disable profile '${i}'."
             ;;
