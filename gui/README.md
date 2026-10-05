@@ -34,6 +34,20 @@ macros.
   `webkit2gtk4.1-devel` (Fedora) or `webkit2gtk-4.1` (Arch) instead, and pass the
   `webkit2_41` build tag.
 
+## Prebuilt binary
+
+To just run the app, download `g502x-config-linux-amd64.tar.gz` from the
+[releases](https://github.com/tarpagad/ratbegger-g502x/releases) and extract it. The executable
+bit is preserved in the tarball, so no `chmod` is needed:
+
+```sh
+tar -xzf g502x-config-linux-amd64.tar.gz
+cd g502x-config-linux-amd64
+./g502x-config-linux-amd64
+```
+
+You still need `ratbagd` and the runtime libraries listed below.
+
 ## Develop and build
 
 ```sh
