@@ -12,6 +12,10 @@ The script uses ratbagctl which is provided by libratbag, a required dependency.
 
 If you would rather configure a newly acquired G502 X directly with `ratbagctl` — the utility this script drives — without relying on a script, see [ADVANCED.md](ADVANCED.md). It is a step-by-step guide covering installation, button numbering, profiles, DPI, report rate and button mapping.
 
+## GUI (EXPERIMENTAL)
+
+A minimal [Wails](https://wails.io) desktop front-end that wraps `ratbagctl` so the mouse can be configured without a terminal lives in the "gui" directory. It is a work in progress — see [gui/README.md](gui/README.md) for build requirements and status.
+
 ## BASIC USAGE
 
 Mouse buttons typically start with the number 1, however, to libratbag, button 1 is button 0, the left primary button, while button 1, to libratbag, is button 2, the right secondary button. See the included image for reference when writing configuration files.
