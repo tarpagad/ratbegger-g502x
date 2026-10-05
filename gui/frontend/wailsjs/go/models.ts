@@ -1,5 +1,46 @@
 export namespace main {
 	
+	export class BackupInfo {
+	    path: string;
+	    file: string;
+	    device: string;
+	    model: string;
+	    // Go type: time
+	    createdAt: any;
+	    profiles: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new BackupInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.file = source["file"];
+	        this.device = source["device"];
+	        this.model = source["model"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	        this.profiles = source["profiles"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class MacroEvent {
 	    type: number;
 	    keycode: number;

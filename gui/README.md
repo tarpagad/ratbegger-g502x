@@ -78,6 +78,11 @@ NODE_ENV=development npm install --include=dev
   and default slots.
 - **Buttons** — assign Disabled, a mouse button, a special action, a single key, or a recorded
   macro; the recorder captures press/release events so chords (`Ctrl+C`) and sequences work.
+- **Backup & restore** — snapshot the whole device to
+  `~/.config/ratbegger-g502x/backups` before changing anything, then restore it if a change goes
+  wrong. Restoring takes a fresh snapshot of the current state first, so a restore can itself be
+  undone. Backups are keyed by profile/resolution/button index, not by D-Bus object path, so they
+  still apply after the mouse is re-plugged.
 
 ## Notes and gotchas
 
@@ -98,8 +103,10 @@ NODE_ENV=development npm install --include=dev
 
 ```sh
 go test ./...                              # unit tests (no daemon needed)
-RATBAGD_LIVE=1 go test -run TestLiveDevices -v .   # reads the real device
+RATBAGD_LIVE=1 go test -run TestLive -v .  # reads the real device, writes a backup to a temp dir
 ```
+
+The live tests never write to the device.
 
 ## Known limitations and next steps
 

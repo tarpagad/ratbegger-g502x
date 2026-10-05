@@ -14,6 +14,10 @@ import {
     SetButtonAction,
     SetButtonMacro,
     DisableButton,
+    SaveBackup,
+    ListBackups,
+    RestoreBackup,
+    DeleteBackup,
 } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime';
 
@@ -28,6 +32,7 @@ const state = {
     editor: null,
     recording: false,
     busy: false,
+    backups: [],
     log: ['Ready.'],
 };
 
@@ -81,6 +86,14 @@ async function reload() {
     }
 }
 
+async function loadBackups() {
+    try {
+        state.backups = await ListBackups();
+    } catch (err) {
+        log(`Load backups failed: ${err}`);
+    }
+}
+
 async function withBusy(label, fn) {
     if (state.busy) return;
     state.busy = true;
@@ -89,6 +102,7 @@ async function withBusy(label, fn) {
     try {
         await fn();
         await reload();
+        await loadBackups();
         log(`${label}: applied`);
     } catch (err) {
         log(`${label}: ERROR ${err}`);
@@ -109,6 +123,7 @@ function render() {
         </header>
         ${renderStatus()}
         ${connected ? renderDevices() : ''}
+        ${connected ? renderBackups() : ''}
         ${renderLog()}
     `;
     attachHandlers();
@@ -330,6 +345,38 @@ function renderActionEditor(editor) {
         default:
             return '';
     }
+}
+
+function formatDate(value) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+}
+
+function renderBackups() {
+    const rows = state.backups.length
+        ? state.backups.map((backup) => `
+            <tr>
+                <td>${escapeHtml(formatDate(backup.createdAt))}<br>
+                    <span class="muted">${escapeHtml(backup.file)} · ${backup.profiles} profiles</span>
+                </td>
+                <td><button class="btn small restore-backup" data-path="${escapeHtml(backup.path)}">Restore</button></td>
+                <td><button class="btn small delete-backup" data-path="${escapeHtml(backup.path)}">Delete</button></td>
+            </tr>`).join('')
+        : `<tr><td class="muted">No backups yet.</td><td></td><td></td></tr>`;
+
+    return `
+        <section class="card">
+            <div class="row spread">
+                <h2>Backup &amp; restore</h2>
+                <button id="save-backup" class="btn">Save current settings</button>
+            </div>
+            <p class="status">Stored in <code>~/.config/ratbegger-g502x/backups</code>.
+                Restoring snapshots the current state first, so it can be undone.</p>
+            <table class="table">
+                <tbody>${rows}</tbody>
+            </table>
+        </section>
+    `;
 }
 
 function renderLog() {
@@ -569,6 +616,30 @@ function attachHandlers() {
     if (apply) {
         apply.onclick = applyEditor;
     }
+
+    const saveBackup = $('save-backup');
+    if (saveBackup) {
+        saveBackup.onclick = () => {
+            const device = currentDevice();
+            withBusy('Save backup', () => SaveBackup(device ? device.model : ''));
+        };
+    }
+
+    document.querySelectorAll('.restore-backup').forEach((el) => {
+        el.onclick = () => {
+            const file = el.dataset.path.split(/[\\/]/).pop();
+            if (!confirm(`Restore ${file}? This overwrites the mouse's current settings.`)) return;
+            withBusy('Restore backup', () => RestoreBackup(el.dataset.path));
+        };
+    });
+
+    document.querySelectorAll('.delete-backup').forEach((el) => {
+        el.onclick = () => {
+            const file = el.dataset.path.split(/[\\/]/).pop();
+            if (!confirm(`Delete ${file}?`)) return;
+            withBusy('Delete backup', () => DeleteBackup(el.dataset.path));
+        };
+    });
 }
 
 // --- Boot --------------------------------------------------------------------
@@ -587,6 +658,7 @@ EventsOn('ratbagd:resync', (devicePath) => {
 
     if (state.status.connected) {
         await reload();
+        await loadBackups();
     }
     render();
 })();

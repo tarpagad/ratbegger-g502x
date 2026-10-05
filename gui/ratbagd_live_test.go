@@ -53,3 +53,49 @@ func TestLiveDevices(t *testing.T) {
 		}
 	}
 }
+
+// TestLiveSaveAndListBackup exercises the backup write/list path. It redirects
+// XDG_CONFIG_HOME to a temp directory and never writes to the device.
+func TestLiveSaveAndListBackup(t *testing.T) {
+	if os.Getenv("RATBAGD_LIVE") == "" {
+		t.Skip("set RATBAGD_LIVE=1 to run against a real ratbagd")
+	}
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+
+	client, err := Connect()
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	defer client.Close()
+
+	app := &App{client: client}
+	info, err := app.SaveBackup("")
+	if err != nil {
+		t.Fatalf("save: %v", err)
+	}
+	if info.Profiles == 0 {
+		t.Fatal("backup contains no profiles")
+	}
+
+	if _, err := os.Stat(info.Path); err != nil {
+		t.Fatalf("backup file was not written: %v", err)
+	}
+
+	backup, err := readBackup(info.Path)
+	if err != nil {
+		t.Fatalf("read back: %v", err)
+	}
+	if backup.Version != backupVersion || backup.Model == "" || len(backup.Profiles) == 0 {
+		t.Fatalf("unexpected backup contents: %+v", backup)
+	}
+
+	infos, err := app.ListBackups()
+	if err != nil {
+		t.Fatalf("list: %v", err)
+	}
+	if len(infos) != 1 {
+		t.Fatalf("got %d backups, want 1", len(infos))
+	}
+
+	t.Logf("saved %s (%d profiles, device %q)", info.File, info.Profiles, backup.Device)
+}
