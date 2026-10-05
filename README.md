@@ -8,6 +8,10 @@ The primary purpose of the ratbegger.sh script is to make it easier to load conf
 
 The script uses ratbagctl which is provided by libratbag, a required dependency. The script does not perform all of the functions available with ratbagctl.
 
+## ADVANCED USAGE
+
+If you would rather configure a newly acquired G502 X directly with `ratbagctl` — the utility this script drives — without relying on a script, see [ADVANCED.md](ADVANCED.md). It is a step-by-step guide covering installation, button numbering, profiles, DPI, report rate and button mapping.
+
 ## BASIC USAGE
 
 Mouse buttons typically start with the number 1, however, to libratbag, button 1 is button 0, the left primary button, while button 1, to libratbag, is button 2, the right secondary button. See the included image for reference when writing configuration files.
