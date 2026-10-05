@@ -4,19 +4,15 @@
 
 ## INTRO
 
-This repository offers three ways to configure a Logitech G502 X on Linux:
+This repository offers three ways to configure a Logitech G502 X on Linux, ordered here from easiest to most hands-on:
 
 | Approach | What it is |
 | --- | --- |
+| **[GUI](gui)** | A Wails desktop app that configures the mouse through `ratbagd` over D-Bus, with backups — no terminal needed. |
 | **`ratbegger.sh`** | The script: loads `.ini` profiles from the "configs" directory onto the mouse and sets the active one, which is easier than typing `ratbagctl` by hand. A sample configuration file is included. |
 | **[`ADVANCED.md`](ADVANCED.md)** | A step-by-step `ratbagctl` guide for setting up a new mouse without a script. |
-| **[GUI](gui)** | A Wails desktop app that configures the mouse through `ratbagd` over D-Bus, with backups. |
 
 The script relies on `ratbagctl`, which is provided by libratbag (a required dependency), and does not perform all of the functions available with `ratbagctl`.
-
-## ADVANCED USAGE
-
-If you would rather configure a newly acquired G502 X directly with `ratbagctl` — the utility this script drives — without relying on a script, see [ADVANCED.md](ADVANCED.md). It is a step-by-step guide covering installation, button numbering, profiles, DPI, report rate and button mapping.
 
 ## GUI
 
@@ -40,6 +36,10 @@ When mapping mouse buttons to keyboard keys, a valid key name must be used, all 
 You can have as many configuration profiles as you want in the "configs" directory, but only 5 can be loaded on the mouse. The files must have a ".ini" extension.
 
 To run the script, `cd` to the script directory and run `./ratbegger.sh`.
+
+## ADVANCED USAGE
+
+If you would rather configure a newly acquired G502 X directly with `ratbagctl` — the utility this script drives — without relying on a script, see [ADVANCED.md](ADVANCED.md). It is a step-by-step guide covering installation, button numbering, profiles, DPI, report rate and button mapping.
 
 ## HELPFUL HINTS
 
