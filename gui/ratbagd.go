@@ -15,6 +15,8 @@ const (
 	ifaceProfile = "org.freedesktop.ratbag1.Profile"
 	ifaceButton  = "org.freedesktop.ratbag1.Button"
 	ifaceRes     = "org.freedesktop.ratbag1.Resolution"
+
+	propSet = "org.freedesktop.DBus.Properties.Set"
 )
 
 // expectedAPIVersion is the ratbagd D-Bus API version this client understands.
@@ -259,7 +261,9 @@ func (r *Ratbagd) resolutionDPI(path dbus.ObjectPath) (uint32, error) {
 	return 0, fmt.Errorf("unexpected resolution value %T", value.Value())
 }
 
-// SetResolutionDPI writes a DPI value to a resolution slot.
+// SetResolutionDPI writes a DPI value to a resolution slot. The Resolution
+// property is itself a variant, so it is wrapped twice: setProperty adds the
+// outer variant (the property's declared type) and the inner one holds the DPI.
 func (r *Ratbagd) SetResolutionDPI(path string, dpi uint32) error {
 	return r.setProperty(path, ifaceRes, "Resolution", dbus.MakeVariant(dpi))
 }
@@ -377,9 +381,12 @@ func (r *Ratbagd) store(path dbus.ObjectPath, iface, prop string, dest interface
 	return r.conn.Object(busService, path).StoreProperty(iface+"."+prop, dest)
 }
 
+// setProperty writes a property. godbus' Object.SetProperty passes the value
+// through as-is, but org.freedesktop.DBus.Properties.Set requires a variant, so
+// the value is wrapped here: callers pass plain Go values.
 func (r *Ratbagd) setProperty(path, iface, prop string, value interface{}) error {
 	return r.conn.Object(busService, dbus.ObjectPath(path)).
-		SetProperty(iface+"."+prop, value)
+		Call(propSet, 0, iface, prop, dbus.MakeVariant(value)).Err
 }
 
 func (r *Ratbagd) call(path, method string) error {

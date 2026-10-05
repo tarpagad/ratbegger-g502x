@@ -102,11 +102,14 @@ NODE_ENV=development npm install --include=dev
 ## Testing
 
 ```sh
-go test ./...                              # unit tests (no daemon needed)
-RATBAGD_LIVE=1 go test -run TestLive -v .  # reads the real device, writes a backup to a temp dir
+go test ./...                                   # unit tests (no daemon needed)
+RATBAGD_LIVE=1 go test -run TestLive -v .       # reads the device, saves a backup to a temp dir
+RATBAGD_LIVE_WRITE=1 go test -run TestLive -v . # also writes: restore round-trip + change/revert
 ```
 
-The live tests never write to the device.
+`RATBAGD_LIVE` tests are read-only. The `RATBAGD_LIVE_WRITE` tests write to the device, but each
+records a recovery backup first and reverts it; the change/revert test restores the original value
+before it finishes and the round-trip test asserts the state is byte-for-byte identical after.
 
 ## Known limitations and next steps
 
