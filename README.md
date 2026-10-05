@@ -4,17 +4,30 @@
 
 ## INTRO
 
-The primary purpose of the ratbegger.sh script is to make it easier to load configuration profiles onto the mouse and set the active one, verses using ratbagctl directly. The script relies upon one or more profile configuration files stored in the "configs" directory. A sample configuration file is included.
+This repository offers three ways to configure a Logitech G502 X on Linux:
 
-The script uses ratbagctl which is provided by libratbag, a required dependency. The script does not perform all of the functions available with ratbagctl.
+| Approach | What it is |
+| --- | --- |
+| **`ratbegger.sh`** | The script: loads `.ini` profiles from the "configs" directory onto the mouse and sets the active one, which is easier than typing `ratbagctl` by hand. A sample configuration file is included. |
+| **[`ADVANCED.md`](ADVANCED.md)** | A step-by-step `ratbagctl` guide for setting up a new mouse without a script. |
+| **[GUI](gui)** | A Wails desktop app that configures the mouse through `ratbagd` over D-Bus, with backups. |
+
+The script relies on `ratbagctl`, which is provided by libratbag (a required dependency), and does not perform all of the functions available with `ratbagctl`.
 
 ## ADVANCED USAGE
 
 If you would rather configure a newly acquired G502 X directly with `ratbagctl` — the utility this script drives — without relying on a script, see [ADVANCED.md](ADVANCED.md). It is a step-by-step guide covering installation, button numbering, profiles, DPI, report rate and button mapping.
 
-## GUI (EXPERIMENTAL)
+## GUI
 
-A [Wails](https://wails.io) desktop app that configures the mouse through `ratbagd` over D-Bus — profiles, DPI, report rate, and button/macro mapping with key capture — lives in the "gui" directory. See [gui/README.md](gui/README.md) for build requirements and status. Prebuilt Linux binaries are attached to the [releases](https://github.com/tarpagad/ratbegger-g502x/releases).
+The ["gui"](gui) directory holds a [Wails](https://wails.io) desktop app that configures the mouse without a terminal and without `ratbagctl` — it talks to `ratbagd` directly over D-Bus (`org.freedesktop.ratbag1`), the same interface Piper uses. It can:
+
+* manage profiles — activate one, enable/disable, rename (where the device supports it) and set the report rate;
+* edit each DPI slot from the device's permitted values, and set the active and default slots;
+* map a button to a mouse button, a special action, a single key or a recorded macro — the key recorder captures chords (e.g. `Ctrl+C`) and sequences;
+* back up the whole device to `~/.config/ratbegger-g502x/backups` before changing anything and restore it later; a restore snapshots the current state first, so it can itself be undone.
+
+Grab the prebuilt Linux binary from the [releases](https://github.com/tarpagad/ratbegger-g502x/releases) (`g502x-config-linux-amd64.tar.gz` — extract and run, no `chmod` needed), or build it from source. See [gui/README.md](gui/README.md) for requirements and build steps.
 
 ## BASIC USAGE
 
@@ -170,5 +183,6 @@ Following are some examples of ratbagctl commands if you need to use it directly
 
 ## RESOURCES
 
-* RatBegger-G502X source code repository: https://codeberg.org/12bytes/ratbegger-g502x
+* RatBegger-G502X source code repository: https://github.com/tarpagad/ratbegger-g502x
 * libratbag source code repository: https://github.com/libratbag/libratbag
+* libratbag D-Bus API documentation: https://libratbag.github.io/dbus.html
