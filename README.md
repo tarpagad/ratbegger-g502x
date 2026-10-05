@@ -14,7 +14,7 @@ If you would rather configure a newly acquired G502 X directly with `ratbagctl` 
 
 ## GUI (EXPERIMENTAL)
 
-A minimal [Wails](https://wails.io) desktop front-end that wraps `ratbagctl` so the mouse can be configured without a terminal lives in the "gui" directory. It is a work in progress — see [gui/README.md](gui/README.md) for build requirements and status.
+A [Wails](https://wails.io) desktop app that configures the mouse through `ratbagd` over D-Bus — profiles, DPI, report rate, and button/macro mapping with key capture — lives in the "gui" directory. See [gui/README.md](gui/README.md) for build requirements and status.
 
 ## BASIC USAGE
 

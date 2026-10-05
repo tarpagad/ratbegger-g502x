@@ -3,19 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
-	"os/exec"
-	"strings"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// App is the Wails application backend. It shells out to ratbagctl, the CLI
-// provided by libratbag (https://github.com/libratbag/libratbag). Changes are
-// written to the mouse's onboard memory, so no daemon needs to keep running
-// after a setting is applied.
-//
-// This is a minimal starting point: every call maps to one ratbagctl command
-// and returns its raw output for the UI to display.
+// App is the Wails application backend. It talks to ratbagd over the system
+// D-Bus instead of spawning ratbagctl, so every change goes through the same
+// code path the CLI and Piper use.
 type App struct {
-	ctx context.Context
+	ctx    context.Context
+	client *Ratbagd
+	err    error
 }
 
 // NewApp creates a new App application struct.
@@ -23,82 +21,183 @@ func NewApp() *App {
 	return &App{}
 }
 
-// startup is called when the app starts.
+// startup is called when the app starts. It connects to ratbagd and subscribes
+// to device Resync signals, which are forwarded to the frontend.
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	client, err := Connect()
+	if err != nil {
+		a.err = err
+		return
+	}
+	a.client = client
+
+	if err := client.WatchResync(func(devicePath string) {
+		runtime.EventsEmit(ctx, "ratbagd:resync", devicePath)
+	}); err != nil {
+		a.err = err
+	}
 }
 
-// Device is a libratbag-supported device, as reported by "ratbagctl list".
-type Device struct {
-	Codename string `json:"codename"`
-	Name     string `json:"name"`
+func (a *App) ratbagd() (*Ratbagd, error) {
+	if a.err != nil {
+		return nil, a.err
+	}
+	if a.client == nil {
+		return nil, fmt.Errorf("ratbagd client is not initialised")
+	}
+	return a.client, nil
 }
 
-// RatbagctlAvailable reports whether ratbagctl is on PATH.
-func (a *App) RatbagctlAvailable() bool {
-	_, err := exec.LookPath("ratbagctl")
-	return err == nil
+// Status reports whether ratbagd is reachable and which API version it speaks.
+func (a *App) Status() Status {
+	client, err := a.ratbagd()
+	if err != nil {
+		return Status{Error: err.Error()}
+	}
+
+	version, err := client.APIVersion()
+	if err != nil {
+		return Status{Error: err.Error()}
+	}
+
+	status := Status{Connected: true, APIVersion: version}
+	if version != expectedAPIVersion {
+		status.Connected = false
+		status.Error = fmt.Sprintf(
+			"unsupported ratbagd D-Bus API version %d (this app needs %d)",
+			version, expectedAPIVersion,
+		)
+	}
+	return status
 }
 
-// ListDevices runs "ratbagctl list" and parses lines of the form
-// "<codename>: <name>".
+// ListDevices returns every device with its full profile tree.
 func (a *App) ListDevices() ([]Device, error) {
-	out, err := runRatbagctl("ratbagctl", "list")
+	client, err := a.ratbagd()
 	if err != nil {
 		return nil, err
 	}
-
-	var devices []Device
-	for _, line := range strings.Split(out, "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		codename, name, found := strings.Cut(line, ":")
-		if !found {
-			continue
-		}
-		devices = append(devices, Device{
-			Codename: strings.TrimSpace(codename),
-			Name:     strings.TrimSpace(name),
-		})
-	}
-	return devices, nil
+	return client.Devices()
 }
 
-// GetDeviceInfo returns the raw output of "ratbagctl <device> info".
-func (a *App) GetDeviceInfo(device string) (string, error) {
-	return runRatbagctl("ratbagctl", device, "info")
-}
-
-// SetDPI writes a DPI value to a resolution slot of a profile.
-func (a *App) SetDPI(device string, profile, slot, dpi int) (string, error) {
-	return runRatbagctl("ratbagctl", device,
-		"profile", fmt.Sprint(profile),
-		"resolution", fmt.Sprint(slot),
-		"dpi", "set", fmt.Sprint(dpi))
-}
-
-// SetReportRate sets the USB report rate (125|250|500|1000) of a profile.
-func (a *App) SetReportRate(device string, profile, rate int) (string, error) {
-	return runRatbagctl("ratbagctl", device,
-		"profile", fmt.Sprint(profile),
-		"rate", "set", fmt.Sprint(rate))
-}
-
-// SetActiveProfile makes the given profile (0-4) the active one.
-func (a *App) SetActiveProfile(device string, profile int) (string, error) {
-	return runRatbagctl("ratbagctl", device,
-		"profile", "active", "set", fmt.Sprint(profile))
-}
-
-// runRatbagctl executes a command without a shell and returns its combined
-// output. Arguments are passed verbatim, so a device name containing spaces is
-// safe.
-func runRatbagctl(name string, args ...string) (string, error) {
-	out, err := exec.Command(name, args...).CombinedOutput()
+// SetResolution writes a DPI value and commits it to the device.
+func (a *App) SetResolution(devicePath, resolutionPath string, dpi uint32) error {
+	client, err := a.ratbagd()
 	if err != nil {
-		return string(out), fmt.Errorf("%s: %w", strings.Join(append([]string{name}, args...), " "), err)
+		return err
 	}
-	return string(out), nil
+	if err := client.SetResolutionDPI(resolutionPath, dpi); err != nil {
+		return err
+	}
+	return client.Commit(devicePath)
+}
+
+// SetResolutionActive activates a resolution slot and commits.
+func (a *App) SetResolutionActive(devicePath, resolutionPath string) error {
+	client, err := a.ratbagd()
+	if err != nil {
+		return err
+	}
+	if err := client.SetResolutionActive(resolutionPath); err != nil {
+		return err
+	}
+	return client.Commit(devicePath)
+}
+
+// SetResolutionDefault sets the default resolution slot and commits.
+func (a *App) SetResolutionDefault(devicePath, resolutionPath string) error {
+	client, err := a.ratbagd()
+	if err != nil {
+		return err
+	}
+	if err := client.SetResolutionDefault(resolutionPath); err != nil {
+		return err
+	}
+	return client.Commit(devicePath)
+}
+
+// SetReportRate sets a profile's report rate and commits.
+func (a *App) SetReportRate(devicePath, profilePath string, rate uint32) error {
+	client, err := a.ratbagd()
+	if err != nil {
+		return err
+	}
+	if err := client.SetReportRate(profilePath, rate); err != nil {
+		return err
+	}
+	return client.Commit(devicePath)
+}
+
+// SetProfileActive makes a profile active and commits.
+func (a *App) SetProfileActive(devicePath, profilePath string) error {
+	client, err := a.ratbagd()
+	if err != nil {
+		return err
+	}
+	if err := client.SetProfileActive(profilePath); err != nil {
+		return err
+	}
+	return client.Commit(devicePath)
+}
+
+// SetProfileEnabled enables or disables a profile and commits.
+func (a *App) SetProfileEnabled(devicePath, profilePath string, enabled bool) error {
+	client, err := a.ratbagd()
+	if err != nil {
+		return err
+	}
+	if err := client.SetProfileEnabled(profilePath, enabled); err != nil {
+		return err
+	}
+	return client.Commit(devicePath)
+}
+
+// SetProfileName renames a profile and commits.
+func (a *App) SetProfileName(devicePath, profilePath, name string) error {
+	client, err := a.ratbagd()
+	if err != nil {
+		return err
+	}
+	if err := client.SetProfileName(profilePath, name); err != nil {
+		return err
+	}
+	return client.Commit(devicePath)
+}
+
+// SetButtonAction assigns a None/Button/Special/Key action and commits.
+func (a *App) SetButtonAction(devicePath, buttonPath string, actionType, value uint32) error {
+	client, err := a.ratbagd()
+	if err != nil {
+		return err
+	}
+	if err := client.SetButtonMapping(buttonPath, actionType, value); err != nil {
+		return err
+	}
+	return client.Commit(devicePath)
+}
+
+// SetButtonMacro assigns a recorded key sequence and commits.
+func (a *App) SetButtonMacro(devicePath, buttonPath string, events []MacroEvent) error {
+	client, err := a.ratbagd()
+	if err != nil {
+		return err
+	}
+	if err := client.SetButtonMacro(buttonPath, events); err != nil {
+		return err
+	}
+	return client.Commit(devicePath)
+}
+
+// DisableButton removes a button's mapping and commits.
+func (a *App) DisableButton(devicePath, buttonPath string) error {
+	client, err := a.ratbagd()
+	if err != nil {
+		return err
+	}
+	if err := client.DisableButton(buttonPath); err != nil {
+		return err
+	}
+	return client.Commit(devicePath)
 }
